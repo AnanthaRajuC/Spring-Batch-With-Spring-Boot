@@ -28,6 +28,34 @@ public class SpringBatchWithSpringBootApplication
 	public StepBuilderFactory stepBuilderFactory;
 	
 	@Bean
+	public Step givePackageToCustomer() 
+	{
+		return this.stepBuilderFactory.get("givePackageToCustomer").tasklet(new Tasklet() 
+		{
+			public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception 
+			{	
+				log.info("Given the package to customer.");
+				
+				return RepeatStatus.FINISHED;
+			}
+		}).build();
+	}
+	
+	@Bean
+	public Step driveToAddressStep() 
+	{
+		return this.stepBuilderFactory.get("driveToAddressStep").tasklet(new Tasklet() 
+		{
+			public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception 
+			{	
+				log.info("Successfully arrived at address.");
+				
+				return RepeatStatus.FINISHED;
+			}
+		}).build();
+	}
+	
+	@Bean
 	public Step packageItemStep() 
 	{
 		return this.stepBuilderFactory.get("packageItemStep").tasklet(new Tasklet() 
@@ -47,7 +75,12 @@ public class SpringBatchWithSpringBootApplication
 	@Bean
 	public Job deliverPackageJob()
 	{
-		return this.jobBuilderFactory.get("deliverPackageJob").start(packageItemStep()).build();
+		return this.jobBuilderFactory
+				.get("deliverPackageJob")
+				.start(packageItemStep())
+				.next(driveToAddressStep())
+				.next(givePackageToCustomer())
+				.build();
 	}
 
 	public static void main(String[] args) 
