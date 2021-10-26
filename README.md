@@ -6,6 +6,11 @@ Spring Batch provides reusable functions that are essential in processing large 
 
 https://spring.io/projects/spring-batch
 
+<!-- DETAILS -->
+## Details
+
+- [Installation](documents/INSTALLATION.MD)  
+
 <!-- CONTRIBUTING -->
 ## Contributing
 

@@ -32,9 +32,12 @@ public class SpringBatchWithSpringBootApplication
 	{
 		return this.stepBuilderFactory.get("packageItemStep").tasklet(new Tasklet() 
 		{
-			public RepeatStatus execute(StepContribution arg0, ChunkContext arg1) throws Exception 
+			public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception 
 			{
-				log.info("The item has been packaged.");
+				String item = chunkContext.getStepContext().getJobParameters().get("item").toString(); 
+				String date = chunkContext.getStepContext().getJobParameters().get("run.date").toString(); 
+						
+				log.info(String.format("The %s has been packaged on %s.", item, date));
 				
 				return RepeatStatus.FINISHED;
 			}
