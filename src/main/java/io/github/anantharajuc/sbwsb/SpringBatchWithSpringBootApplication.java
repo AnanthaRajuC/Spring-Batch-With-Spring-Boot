@@ -28,9 +28,23 @@ public class SpringBatchWithSpringBootApplication
 	public StepBuilderFactory stepBuilderFactory;
 	
 	@Bean
-	public Step givePackageToCustomer() 
+	public Step storePackageStep() 
 	{
 		return this.stepBuilderFactory.get("givePackageToCustomer").tasklet(new Tasklet() 
+		{
+			public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception 
+			{	
+				log.info("Storing the package while the customer address is located.");
+				
+				return RepeatStatus.FINISHED;
+			}
+		}).build();
+	}
+	
+	@Bean
+	public Step givePackageToCustomerStep() 
+	{
+		return this.stepBuilderFactory.get("givePackageToCustomerStep").tasklet(new Tasklet() 
 		{
 			public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception 
 			{	
@@ -44,10 +58,17 @@ public class SpringBatchWithSpringBootApplication
 	@Bean
 	public Step driveToAddressStep() 
 	{
+		final boolean GOT_LOST = true;
+		
 		return this.stepBuilderFactory.get("driveToAddressStep").tasklet(new Tasklet() 
 		{
 			public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext) throws Exception 
-			{	
+			{
+				if(GOT_LOST)
+				{
+					throw new RuntimeException("Got lost driving to the address.");
+				}
+
 				log.info("Successfully arrived at address.");
 				
 				return RepeatStatus.FINISHED;
@@ -79,7 +100,10 @@ public class SpringBatchWithSpringBootApplication
 				.get("deliverPackageJob")
 				.start(packageItemStep())
 				.next(driveToAddressStep())
-				.next(givePackageToCustomer())
+					.on("FAILED").to(storePackageStep())
+				.from(driveToAddressStep())
+					.on("*").to(givePackageToCustomerStep())
+				.end()
 				.build();
 	}
 
